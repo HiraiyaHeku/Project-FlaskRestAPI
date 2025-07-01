@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Pembalap</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+    <h2>Data Pembalap</h2>
+
+    <div class="search-container">
+        <input type="text" id="searchId" placeholder="Cari ID Pembalap">
+        <button onclick="searchPembalap()">Cari</button>
+        <button onclick="fetchPembalap()">Reset</button>
+    </div>
+
+    <table id="pembalapTable">
+        <tr>
+            <th>ID</th>
+            <th>Nama</th>
+            <th>Mobil</th>
+            <th>Region</th>
+            <th>Aksi</th>
+        </tr>
+    </table>
+
+    <h3>Tambah Pembalap</h3>
+    <div class="form-container">
+        <input type="text" id="nama" placeholder="Nama">
+        <input type="text" id="mobil" placeholder="Mobil">
+        <input type="text" id="region" placeholder="Region">
+        <button onclick="addPembalap()">Tambah</button>
+    </div>
+
+    <script>
+        async function fetchPembalap() {
+            const response = await fetch('/pembalap');
+            const data = await response.json();
+            renderTable(data);
+        }
+
+        function renderTable(data) {
+            const table = document.getElementById('pembalapTable');
+            table.innerHTML = `
+                <tr>
+                    <th>ID</th>
+                    <th>Nama</th>
+                    <th>Mobil</th>
+                    <th>Region</th>
+                    <th>Aksi</th>
+                </tr>
+            `;
+            data.forEach(pembalap => {
+                const row = table.insertRow();
+                row.innerHTML = `
+                    <td>${pembalap.pembalap_id}</td>
+                    <td>${pembalap.nama}</td>
+                    <td>${pembalap.mobil}</td>
+                    <td>${pembalap.region}</td>
+                    <td>
+                        <button onclick="editPembalap(${pembalap.pembalap_id})">Edit</button>
+                        <button onclick="deletePembalap(${pembalap.pembalap_id})">Hapus</button>
+                    </td>
+                `;
+            });
+        }
+
+        async function addPembalap() {
+            const nama = document.getElementById('nama').value;
+            const mobil = document.getElementById('mobil').value;
+            const region = document.getElementById('region').value;
+
+            if (nama && mobil && region) {
+                await fetch('/pembalap', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nama, mobil, region })
+                });
+                fetchPembalap();
+            } else {
+                alert("Semua field harus diisi.");
+            }
+        }
+
+        async function deletePembalap(id) {
+            await fetch(`/deletepembalap?id=${id}`, { method: 'DELETE' });
+            fetchPembalap();
+        }
+
+        async function editPembalap(id) {
+            const nama = prompt("Nama baru:");
+            const mobil = prompt("Mobil baru:");
+            const region = prompt("Region baru:");
+
+            if (nama && mobil && region) {
+                await fetch(`/editpembalap?id=${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nama, mobil, region })
+                });
+                fetchPembalap();
+            }
+        }
+
+        async function searchPembalap() {
+            const id = document.getElementById('searchId').value;
+            if (id) {
+                const response = await fetch(`/infopembalap/?id=${id}`);
+                const data = await response.json();
+                if (data.length > 0) {
+                    const pembalap = data.map(d => ({
+                        pembalap_id: d[0],
+                        nama: d[1],
+                        mobil: d[2],
+                        region: d[3]
+                    }));
+                    renderTable(pembalap);
+                } else {
+                    alert("Pembalap tidak ditemukan.");
+                }
+            }
+        }
+
+        fetchPembalap();
+    </script>
+</body>
+</html>
