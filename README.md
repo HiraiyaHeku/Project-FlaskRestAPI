@@ -5,6 +5,7 @@
 ## About
 
 Simple Project Flask Rest API, Memuat Data Pembalap
+Oleh: Bumi Madilka Al Fath
 
 ### Requirement
 
